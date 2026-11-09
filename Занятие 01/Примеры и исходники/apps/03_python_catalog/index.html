@@ -1,0 +1,142 @@
+<!doctype html>
+<!--
+  УЧЕБНЫЙ ПРИМЕР 3 — БРАУЗЕР (FRONTEND) + PYTHON (BACKEND)
+  ВАЖНО: этот файл — только frontend.
+  Серверная программа написана в файле server.py В ТОЙ ЖЕ ПАПКЕ.
+  Данные сервера хранятся в items.json В ТОЙ ЖЕ ПАПКЕ.
+
+  Как показать студентам:
+  1. Откройте server.py: это Python, отдельная программа.
+  2. Выполните в этой папке: python server.py
+  3. Откройте в браузере: http://127.0.0.1:8765/
+  4. Нажмите кнопку: JS-код внизу этого файла отправит запрос к Python.
+  5. Остановите сервер: браузер больше не сможет получить данные.
+-->
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Каталог — браузер и Python</title>
+
+  <!-- СТИЛИ CSS: задают внешний вид, не выполняют поиск. -->
+  <style>
+    body {
+      font: 17px/1.5 system-ui, sans-serif;
+      background: #f7f8fa;
+      color: #17283b;
+      margin: auto;
+      max-width: 920px;
+      padding: 45px 18px;
+    }
+    h1 { font-size: 39px; margin-bottom: 4px; }
+    .note { color: #647183; }
+    input {
+      font: inherit;
+      padding: 12px;
+      width: min(80%, 410px);
+      border: 1px solid #a4b4c3;
+      border-radius: 5px;
+    }
+    button {
+      font: inherit;
+      padding: 12px;
+      border-radius: 5px;
+      background: #176a70;
+      color: white;
+      border: 0;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    #status { min-height: 30px; margin-top: 16px; } /* #status — элемент с id="status". */
+    ul { list-style: none; padding: 0; }
+    li { background: white; border: 1px solid #dbe0e5; padding: 18px 20px; margin: 10px 0; }
+    small { color: #68757d; }
+    pre { background: #eaf0f5; padding: 14px; overflow: auto; }
+    code { background: #eaf0f5; padding: 2px 5px; }
+  </style>
+</head>
+
+<!-- HTML: элементы интерфейса; ниже НЕТ заранее прописанного списка материалов. -->
+<body>
+  <p class="note">УЧЕБНЫЙ ПРИМЕР · frontend в браузере + backend на Python</p>
+  <h1>Каталог материалов</h1>
+  <p>Программа в браузере отправляет запрос к отдельному процессу Python. На странице нет заранее прописанных карточек.</p>
+
+  <!-- Поле ввода и кнопка существуют в HTML до отправки запроса. -->
+  <input id="query" placeholder="Поиск по названию" aria-label="Поиск по названию">
+  <button id="load">Получить данные с сервера</button>
+
+  <!-- Пустые контейнеры: JavaScript заполнит их ПОСЛЕ ответа сервера. -->
+  <p id="status" role="status"></p>
+  <ul id="items"></ul>
+
+  <!-- Небольшой технический экран: показывает JSON-ответ, пришедший от Python. -->
+  <details>
+    <summary>Посмотреть технический ответ сервера (JSON)</summary>
+    <pre id="raw">Пока нет ответа</pre>
+  </details>
+  <p class="note">Найдите запрос <code>/api/items</code> на вкладке Network. Остановите Python-сервер и попробуйте снова.</p>
+
+  <!-- ============================================================ -->
+  <!-- JavaScript: ЭТО КОД В БРАУЗЕРЕ, а не код Python-сервера.     -->
+  <!-- Python находится в server.py, а здесь браузерный клиент.    -->
+  <!-- ============================================================ -->
+  <script>
+    // document.querySelector(...) — найти элемент HTML по селектору CSS.
+    // #query означает элемент с id="query".
+    const q = document.querySelector('#query');
+    const list = document.querySelector('#items');
+    const status = document.querySelector('#status');
+    const raw = document.querySelector('#raw');
+
+    // async function — асинхронная JS-функция. Она может ждать сетевой ответ.
+    // Сам запрос отправляется БРАУЗЕРОМ, а обрабатывается PYTHON-СЕРВЕРОМ.
+    async function load() {
+      status.textContent = 'Ожидаем ответ сервера…';
+      list.replaceChildren();  // Очищаем список перед загрузкой.
+
+      try {
+        // fetch(...) — браузерный API для отправки HTTP-запросов.
+        // /api/items — адрес маршрута, который обрабатывает server.py.
+        // q=... — поисковый параметр; encodeURIComponent защищает URL от пробелов и спецсимволов.
+        // await: ждём ответ, НЕ останавливая весь интерфейс браузера.
+        const response = await fetch(`/api/items?q=${encodeURIComponent(q.value)}`);
+
+        // response.ok говорит, пришёл ли успешный HTTP-ответ (статус 2xx).
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        // response.json() читает JSON, присланный Python, и превращает его в данные JS.
+        const items = await response.json();
+        raw.textContent = JSON.stringify(items, null, 2);
+
+        // for (... of ...) — цикл по полученным карточкам каталога.
+        // createElement(...) создаёт новый HTML-элемент в памяти браузера.
+        // append(...) помещает элемент на страницу (изменение DOM).
+        for (const item of items) {
+          const li = document.createElement('li');
+          const strong = document.createElement('strong');
+          strong.textContent = item.title;
+
+          const small = document.createElement('small');
+          small.textContent = ` · ${item.category}`; // `...` — шаблонная строка JS.
+          li.append(strong, small);
+          list.append(li);
+        }
+        status.textContent = `Сервер вернул записей: ${items.length}`;
+      } catch (error) {
+        // catch выполняется, если сервер недоступен либо произошла ошибка.
+        status.textContent = `Нет ответа сервера: ${error.message}`;
+        raw.textContent = 'Ошибка';
+      }
+    }
+
+    // Событие click: по нажатию запускаем JS-функцию load().
+    document.querySelector('#load').addEventListener('click', load);
+
+    // Первая загрузка запускается сразу при открытии страницы.
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!doctype html>
+<!--
+  УЧЕБНЫЙ ПРИМЕР 2 — АНАЛИЗАТОР ТЕКСТА ТОЛЬКО В БРАУЗЕРЕ
+  В одном файле собраны три разные технологии:
+    1) HTML — какие элементы есть на странице;
+    2) CSS — как эти элементы выглядят;
+    3) JavaScript — что происходит при нажатии кнопки.
+  ВНИМАНИЕ: Python и отдельного backend здесь нет.
+-->
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Текстоскоп — HTML и JavaScript</title>
+
+  <!-- ============================================================ -->
+  <!-- БЛОК 1. CSS: ВНЕШНИЙ ВИД (внутри тега <style>).             -->
+  <!-- CSS записывается по схеме: селектор { свойство: значение; } -->
+  <!-- ============================================================ -->
+  <style>
+    /* :root — корневой элемент: здесь общие настройки оформления. */
+    :root {
+      color-scheme: light;
+      font-family: system-ui, Arial, sans-serif;
+      color: #1d293b;
+      background: #f3f6fa;
+    }
+    body { margin: 0; padding: 32px 16px; }
+    main {
+      max-width: 780px;
+      margin: auto;
+      padding: 34px;
+      border-radius: 20px;
+      background: white;
+      box-shadow: 0 12px 38px #15294412;
+    }
+    h1 { margin-top: 0; }
+    label { display: block; font-weight: 700; margin-bottom: 12px; }
+
+    /* Селектор textarea выбирает HTML-элемент <textarea>. */
+    textarea {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 14px;
+      min-height: 150px;
+      font: inherit;
+      border: 1px solid #a7b7ca;
+      border-radius: 12px;
+    }
+    /* Селектор button выбирает все кнопки <button>. */
+    button {
+      margin-top: 12px;
+      border: 0;
+      border-radius: 9px;
+      background: #207f92;
+      color: white;
+      padding: 12px 18px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:hover { background: #185d6c; }  /* Цвет при наведении мыши. */
+    button:focus-visible { outline: 3px solid #eda94b; outline-offset: 3px; }
+
+    /* .metrics — селектор по CSS-классу (class="metrics"). */
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+    .metric { background: #f3f7fa; padding: 18px; border-radius: 12px; }
+    .metric strong { display: block; font-size: 28px; margin-bottom: 4px; }
+    .metric span { font-size: 14px; }
+    pre { white-space: pre-wrap; font: inherit; background: #f3f7fa; border-radius: 10px; padding: 16px; }
+    .note { color: #536b80; font-size: 14px; }
+
+    /* @media — оформление на маленьком экране (адаптивность). */
+    @media (max-width: 500px) {
+      .metrics { grid-template-columns: 1fr; }
+      main { padding: 20px; }
+    }
+  </style>
+  <!-- КОНЕЦ CSS -->
+</head>
+
+<!-- ============================================================ -->
+<!-- БЛОК 2. HTML: СТРУКТУРА СТРАНИЦЫ.                          -->
+<!-- Теги <h1>, <textarea>, <button>, <div> описывают элементы. -->
+<!-- Браузер создаёт из этих элементов дерево DOM.                -->
+<!-- ============================================================ -->
+<body>
+  <main>
+    <!-- <h1> — видимый заголовок страницы. -->
+    <h1 id="title">Текстоскоп — HTML + JS</h1>
+    <p>Вся обработка происходит в браузере. Python-сервер не нужен.</p>
+
+    <!-- label поясняет поле, атрибут for связывает подпись с id поля. -->
+    <label for="text">Введите текст</label>
+    <!-- textarea — поле ввода; id="text" позволяет JavaScript найти его. -->
+    <textarea id="text">Кот и пёс. Кот спит!</textarea>
+
+    <!-- Кнопка. JavaScript позже подключит к ней обработчик события click. -->
+    <button id="analyze">Проанализировать</button>
+
+    <!-- Эта область сначала показывает прочерки. JavaScript заменит их числами. -->
+    <div class="metrics" aria-live="polite">
+      <div class="metric"><strong id="words">—</strong><span>Слов</span></div>
+      <div class="metric"><strong id="characters">—</strong><span>Символов</span></div>
+      <div class="metric"><strong id="unique">—</strong><span>Уникальных слов</span></div>
+    </div>
+
+    <h2>Самые частые слова</h2>
+    <!-- <pre> сохраняет переносы строк при показе результатов. -->
+    <pre id="top" aria-live="polite">Нажмите «Проанализировать».</pre>
+    <p class="note">Попробуйте отключить интернет или открыть файл без запуска сервера.</p>
+  </main>
+
+  <!-- ============================================================ -->
+  <!-- БЛОК 3. JAVASCRIPT: ПОВЕДЕНИЕ ПРИЛОЖЕНИЯ.                  -->
+  <!-- Тег <script> сообщает браузеру: дальше находится JS-код.   -->
+  <!-- Браузер исполняет его своим JavaScript-движком.             -->
+  <!-- Внутри <script> комментарии пишутся как // или /* ... */.  -->
+  <!-- ============================================================ -->
+  <script>
+    // const — объявление переменной, значение которой не переназначается.
+    // Наша настройка: сколько наиболее частых слов показывать.
+    const TOP_N = 3; // ПОПРОБУЙТЕ поменять 3 на 5 и перезагрузить страницу.
+
+    // function — объявление функции (участка программы, решающего задачу).
+    // text — входной параметр: строка, которую мы хотим проанализировать.
+    function analyze(text) {
+      // toLowerCase() переводит текст в нижний регистр.
+      // match(...) находит слова; ?? [] означает «если совпадений нет — пустой список».
+      const words = text.toLowerCase().match(/\p{L}+/gu) ?? [];
+
+      // Map — коллекция пар «слово → сколько раз встретилось».
+      const counts = new Map();
+
+      // for (... of ...) — цикл: по очереди берём каждое слово.
+      for (const word of words) {
+        // Увеличиваем счётчик данного слова на 1.
+        counts.set(word, (counts.get(word) ?? 0) + 1);
+      }
+
+      // Сортируем слова по частоте (при равенстве — по алфавиту)
+      // и оставляем первые TOP_N элементов.
+      const top = [...counts.entries()]
+        .sort((a, b) => (b[1] - a[1]) || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+        .slice(0, TOP_N);
+
+      // return — возвращаем из функции результат в виде объекта.
+      return {
+        words: words.length,
+        characters: Array.from(text).length,
+        unique: counts.size,
+        top: top
+      };
+    }
+
+    // document — предоставляемый браузером объект для работы со страницей.
+    // getElementById('analyze') находит HTML-кнопку с id="analyze".
+    // addEventListener('click', ...) регистрирует реакцию на нажатие.
+    document.getElementById('analyze').addEventListener('click', () => {
+      // () => { ... } — короткая запись функции (arrow function).
+      // При нажатии браузер вызывает именно эту функцию.
+
+      // .value — то, что пользователь ввёл в поле <textarea>.
+      const text = document.getElementById('text').value;
+
+      // Вызываем нашу функцию analyze(...) и получаем вычисленные данные.
+      const result = analyze(text);
+
+      // .textContent меняет текст соответствующего HTML-элемента.
+      // Это изменение DOM: страница обновится без повторной загрузки файла.
+      document.getElementById('words').textContent = result.words;
+      document.getElementById('characters').textContent = result.characters;
+      document.getElementById('unique').textContent = result.unique;
+
+      // map(...) создаёт строку для каждого слова; join('\n') соединяет
+      // строки через перенос. Обратные кавычки `...` — шаблонная строка JS.
+      document.getElementById('top').textContent = result.top.length
+        ? result.top.map(([word, n]) => `${word}: ${n}`).join('\n')
+        : 'Нет слов для анализа';
+    });
+  </script>
+  <!-- КОНЕЦ JavaScript -->
+</body>
+</html>

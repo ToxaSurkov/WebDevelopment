@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <title>Кластеризация в браузере — учебная лаборатория</title>
+
+  <!-- CSS оформляет документ. Файл не содержит данных или вычислений. -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- ВАЖНО: оба JS-файла загружаются и выполняются САМИМ БРАУЗЕРОМ.
+       defer: запустить их после чтения HTML; порядок файлов сохранится.
+       algorithms.js — математика K-means и DBSCAN.
+       app.js — управление интерфейсом и визуализация (Canvas API).
+       НИКАКОГО PYTHON-СЕРВЕРА И НИКАКИХ ВНЕШНИХ БИБЛИОТЕК. -->
+  <script src="algorithms.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <!-- HTML описывает структуру: навигация, формы, кнопки и холст. -->
+  <main class="page">
+    <header class="masthead">
+      <div class="eyebrow">УЧЕБНАЯ ЛАБОРАТОРИЯ / БРАУЗЕРНЫЕ ВЫЧИСЛЕНИЯ</div>
+      <h1>Кластеризация данных <span>без сервера</span></h1>
+      <p class="lead">Генерируйте точки, наблюдайте шаги алгоритма и сравнивайте результаты. Все вычисления выполняются JavaScript в вашем браузере.</p>
+      <div class="offline-indicator"><span class="dot"></span> Полностью локально · без Python, интернета и библиотек</div>
+    </header>
+
+    <section class="workspace" aria-label="Рабочая область лаборатории">
+      <section class="plot-panel" aria-label="Диаграмма рассеяния">
+        <div class="plot-heading">
+          <div>
+            <h2>Пространство признаков</h2>
+            <p>Каждая точка — один объект с двумя признаками: x и y.</p>
+          </div>
+          <span class="chart-pill" id="plot-state">Исходные данные</span>
+        </div>
+        <!-- ЭТО CANVAS — специальный элемент HTML, на котором JS рисует графику.
+             В самом HTML нет точек, центров кластеров или графиков. -->
+        <div class="plot-wrap">
+          <canvas id="main-canvas" aria-label="Облако точек, окрашенное по результатам кластеризации" role="img"></canvas>
+          <div class="plot-axis axis-y">Признак Y</div>
+          <div class="plot-axis axis-x">Признак X</div>
+        </div>
+        <div class="legend" id="legend" aria-label="Обозначения на графике"></div>
+        <div class="stats-grid" aria-live="polite">
+          <div><span>Объектов</span><strong id="stat-points">—</strong></div>
+          <div><span>Кластеров</span><strong id="stat-clusters">—</strong></div>
+          <div><span id="stat-third-label">Итерация</span><strong id="stat-third">—</strong></div>
+          <div><span id="stat-fourth-label">Инерция</span><strong id="stat-fourth">—</strong></div>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <section class="control-section">
+          <h2>1. Данные</h2>
+          <label for="dataset">Форма распределения</label>
+          <select id="dataset">
+            <option value="blobs">Три облака</option>
+            <option value="moons">Две дуги</option>
+            <option value="rings">Два кольца</option>
+            <option value="uniform">Равномерные точки</option>
+          </select>
+          <label for="n-points">Количество точек <output id="n-points-output">240</output></label>
+          <input id="n-points" type="range" min="60" max="400" step="20" value="240">
+          <label for="noise">Случайный шум <output id="noise-output">4%</output></label>
+          <input id="noise" type="range" min="0" max="20" step="2" value="4">
+          <div class="side-actions">
+            <button id="generate" class="secondary">Создать набор</button>
+            <button id="import" class="text-button">Импорт CSV</button>
+            <input type="file" id="file-picker" accept=".csv,text/csv,text/plain" hidden>
+          </div>
+          <p class="mini-hint">Можно также добавить собственные точки щелчками по графику.</p>
+        </section>
+
+        <section class="control-section">
+          <h2>2. Алгоритм</h2>
+          <div class="tabs" role="group" aria-label="Выбор алгоритма">
+            <button id="choose-kmeans" class="tab active" aria-pressed="true">K-means</button>
+            <button id="choose-dbscan" class="tab" aria-pressed="false">DBSCAN</button>
+          </div>
+          <div id="kmeans-params">
+            <label for="k">Число кластеров K <output id="k-output">3</output></label>
+            <input id="k" type="range" min="2" max="8" value="3">
+            <p class="mini-hint">K-means заранее требует выбрать число групп и ищет компактные кластеры.</p>
+          </div>
+          <div id="dbscan-params" hidden>
+            <label for="eps">Радиус соседства ε <output id="eps-output">7</output></label>
+            <input id="eps" type="range" min="2" max="16" step="0.5" value="7">
+            <label for="minpts">Минимум соседей <output id="minpts-output">5</output></label>
+            <input id="minpts" type="range" min="3" max="12" value="5">
+            <p class="mini-hint">DBSCAN объединяет плотные области любой формы, выделяя шум.</p>
+          </div>
+        </section>
+
+        <section class="control-section last">
+          <h2>3. Выполнение</h2>
+          <div class="run-actions">
+            <button id="next" class="secondary">Один шаг</button>
+            <button id="play" class="primary">▶ Запустить</button>
+          </div>
+          <button id="restart" class="text-button standalone">↺ Начать алгоритм заново</button>
+          <div class="status-line" aria-live="polite" id="status">Нажмите «Один шаг» или «Запустить».</div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="compare-section" aria-labelledby="compare-title">
+      <div class="compare-head">
+        <div>
+          <h2 id="compare-title">Почему выбор алгоритма важен</h2>
+          <p>Одинаковые точки могут разделиться на группы совершенно по-разному.</p>
+        </div>
+        <button id="compare" class="secondary">Сравнить K-means и DBSCAN</button>
+      </div>
+      <div class="comparison" id="comparison" hidden>
+        <article>
+          <h3>K-means</h3>
+          <canvas id="compare-kmeans" role="img" aria-label="Результат K-means"></canvas>
+          <p id="compare-kmeans-note"></p>
+        </article>
+        <article>
+          <h3>DBSCAN</h3>
+          <canvas id="compare-dbscan" role="img" aria-label="Результат DBSCAN"></canvas>
+          <p id="compare-dbscan-note"></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="explain" aria-label="Как работает приложение">
+      <h2>Что происходит под капотом</h2>
+      <div class="mechanism">
+        <div><strong>HTML</strong><span>Поля, кнопки и элемент <code>&lt;canvas&gt;</code></span></div>
+        <div class="chevron">→</div>
+        <div><strong>JavaScript</strong><span>Генерирует точки, вычисляет центры, относит точки к кластерам</span></div>
+        <div class="chevron">→</div>
+        <div><strong>Canvas API</strong><span>Рисует точки и результат кластеризации в браузере</span></div>
+      </div>
+      <p>Откройте DevTools → <strong>Network</strong>: после загрузки файлов приложение не выполняет сетевых запросов. Во вкладке <strong>Sources</strong> можно открыть алгоритмы и поставить точку останова.</p>
+    </section>
+  </main>
+</body>
+</html>
