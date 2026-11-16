@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>Один счётчик без React</title></head>
+<body>
+  <button id="count">Нажато: 0</button>
+  <script>
+    // Разработчик вручную находит HTML-элемент и меняет DOM.
+    let count = 0;
+    const button = document.getElementById('count');
+    button.addEventListener('click', () => {
+      count += 1;
+      button.textContent = `Нажато: ${count}`;
+    });
+  </script>
+</body>
+</html>
