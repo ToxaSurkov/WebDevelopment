@@ -1,18 +1,13 @@
-import React, {useState} from 'react';
-import {createRoot} from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import SiteLayout from './SiteLayout.jsx';
-import CatalogPage from './pages/CatalogPage.jsx';
-import './styles.css';
+import CatalogPage from '../../catalog-shared/react/CatalogPage.jsx';
+import { useCatalogFilters } from '../../catalog-shared/react/useCatalogFilters.js';
+import '../../catalog-shared/styles.css';
 
 function CatalogDocument() {
-  const [query, setQuery] = useState('');
-  const [year, setYear] = useState('all');
-  const resetFilters = () => { setQuery(''); setYear('all'); };
-  return <SiteLayout current="/">
-    <CatalogPage query={query} year={year} onQueryChange={setQuery}
-      onYearChange={setYear} onReset={resetFilters}/>
-  </SiteLayout>;
+  // Каждая навигация MPA создаёт новый документ и новое состояние фильтров.
+  const filters = useCatalogFilters();
+  return <SiteLayout current="catalog"><CatalogPage filters={filters} /></SiteLayout>;
 }
-createRoot(document.getElementById('root')).render(
-  <React.StrictMode><CatalogDocument/></React.StrictMode>
-);
+
+createRoot(document.getElementById('root')).render(<CatalogDocument />);

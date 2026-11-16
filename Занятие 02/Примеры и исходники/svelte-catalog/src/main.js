@@ -1,4 +1,4 @@
 import { mount } from 'svelte';
 import App from './App.svelte';
-import './styles.css';
+import '../../catalog-shared/styles.css';
 mount(App, { target: document.getElementById('app') });

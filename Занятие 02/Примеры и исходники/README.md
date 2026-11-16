@@ -1,30 +1,32 @@
-# Лекция 02 — исходники и примеры
+# Занятие 2. Каталог и лаборатория оптимизации
 
-Примеры расположены в обычных папках (без ZIP). В основе проектов — один учебный каталог из 9 научных публикаций.
+Три версии одного каталога используют общий набор из 60 синтетических публикаций, поиск по названию, авторам и аннотации, фильтры по году и области, сортировку, сброс и статистику по областям.
 
-| Папка | Для чего | Запуск |
-|---|---|---|
-| `vanilla-catalog/` | Обычный JavaScript: фильтрация и ручные изменения DOM | Открыть `index.html` |
-| `react-catalog/` | Компоненты React, props, `useState` и фильтры | `npm install`, `npm run dev` |
-| `react-spa-routes/` | React SPA: `/`, `/stats`, `/about`, React Router | `npm install`, `npm run dev` |
-| `react-mpa/` | React MPA: три HTML-документа и независимые React-точки входа | `npm install`, `npm run dev` |
-| `svelte-catalog/` | Тот же каталог на Svelte 5 (`$state`, `$derived`) | `npm install`, `npm run dev` |
-| `react-performance-lab/` | Ошибочное/правильное размещение state, производные данные, Profiler, memo, Context, списки, сеть, lazy loading | См. `README.md` внутри проекта |
-| `svelte-performance-lab/` | Аналогичная лаборатория Svelte 5; сравнение реактивной модели и общих приёмов оптимизации | См. `README.md` внутри проекта |
+## Как запустить
 
-**Основные ссылки на код (относительные пути):**
+В Anaconda Prompt перейдите в папку «Примеры и исходники» и один раз установите зависимости.
 
-- `vanilla-catalog/src/app.js` — ручное обновление каталога.
-- `react-catalog/src/App.jsx` и `react-catalog/src/components/` — компоненты, props, state.
-- `svelte-catalog/src/App.svelte` и `svelte-catalog/src/components/` — сравнение с React.
-- `react-spa-routes/src/App.jsx` и `react-mpa/src/SiteLayout.jsx` — SPA и MPA.
-- `react-performance-lab/src/demos/StatePlacement.jsx`, `DerivedState.jsx`, `MemoContext.jsx`, `Lists.jsx`, `Network.jsx` — оптимизация React.
-- `svelte-performance-lab/src/demos/StatePlacement.svelte`, `DerivedState.svelte`, `FineGrained.svelte`, `ContextDemo.svelte`, `Lists.svelte`, `Network.svelte` — Svelte 5.
+    npm install
 
-**Примечания к лекции:**
+| Проект | Команда из этой папки | Адрес |
+| --- | --- | --- |
+| [React SPA](react-spa-routes/) | `npm run dev:spa` | [127.0.0.1:5173](http://127.0.0.1:5173/) |
+| [React MPA](react-mpa/) | `npm run dev:mpa` | [127.0.0.1:5174](http://127.0.0.1:5174/) |
+| [Svelte 5](svelte-catalog/) | `npm run dev:svelte` | [127.0.0.1:5175](http://127.0.0.1:5175/) |
+| [Лаборатория оптимизации](optimization-lab/) | `npm run dev:lab` | [React](http://127.0.0.1:5176/) · [Svelte](http://127.0.0.1:5176/svelte.html) |
 
-- Пример `useLocalStorage` на слайде 19 — иллюстрация применения хука из библиотеки `usehooks-ts`. Исходный `react-catalog` пока не использует этот хук.
-- Для SPA/MPA сравнивайте переходы в DevTools → Network с фильтром Doc. Для React и Svelte оптимизации измеряйте время выполнения, число DOM-узлов и сетевые запросы. Не делайте вывод о выигрыше из одного запуска dev-сервера.
-- В лабораториях React и Svelte используется учебный FastAPI backend для сетевых сценариев; конфигурацию запуска смотрите в `README.md` каждого проекта.
+Если сравниваете проекты одновременно, запускайте их в разных окнах. Везде используется Node.js 22.12+ или более новая поддерживаемая версия. `npm run build` собирает все четыре проекта, `npm test` проверяет общую логику каталога.
 
-Для большинства Vite-проектов потребуется Node.js, npm и доступ к npm registry при первой установке. При запуске нескольких проектов одновременно используйте разные локальные порты.
+## Что сравнить
+
+- Выберите год 2025 и область NLP, затем измените сортировку. Проверьте счётчик, кнопку сброса и пустую выдачу. Во всех версиях результаты совпадают.
+- В DevTools откройте **Network → Doc** и включите **Preserve log**. Перейдите из каталога в статистику и обратно. В React SPA переходы выполняет React Router, фильтры из `App` сохраняются. React MPA загружает новый HTML-документ, поэтому фильтры сбрасываются.
+- В лаборатории откройте «Вычисления» в версии React и сравните счётчики расчётов при одинаковом пороге. Для вкладки «Сеть» нужен [общий FastAPI](optimization-lab/README.md#как-запустить-сетевое-демо).
+
+## Где смотреть исходники
+
+- [Данные](catalog-shared/data/publications.json), [фильтрация и статистика](catalog-shared/catalog.js) и [стили](catalog-shared/styles.css) общие для каталогов.
+- [Вход и маршруты React SPA](react-spa-routes/src/App.jsx), [общий экран каталога](catalog-shared/react/CatalogPage.jsx) и [состояние фильтров](catalog-shared/react/useCatalogFilters.js).
+- [Навигация MPA](react-mpa/src/SiteLayout.jsx) и её HTML-документы [index](react-mpa/index.html), [stats](react-mpa/stats.html) и [about](react-mpa/about.html).
+- [Состояние и шаблон Svelte](svelte-catalog/src/App.svelte), [компоненты](svelte-catalog/src/components/).
+- Лаборатория содержит [демо React](optimization-lab/src/react/demos/) и [демо Svelte](optimization-lab/src/svelte/demos/). Оба используют общие данные и API.

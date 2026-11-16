@@ -1,0 +1,19 @@
+{
+  "name": "web-development-lesson-02",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "react-spa-routes",
+    "react-mpa",
+    "svelte-catalog",
+    "optimization-lab"
+  ],
+  "scripts": {
+    "dev:spa": "npm run dev --workspace react-spa-routes",
+    "dev:mpa": "npm run dev --workspace react-mpa",
+    "dev:svelte": "npm run dev --workspace svelte-catalog",
+    "dev:lab": "npm run dev --workspace optimization-lab",
+    "build": "npm run build --workspaces",
+    "test": "node --test catalog-shared/tests/*.test.js"
+  }
+}
