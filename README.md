@@ -14,10 +14,10 @@
 
 ## Практические задания
 
-| Занятие | Задание |
-| --- | --- |
-| 1 | [Публикация на GitHub Pages и Hugging Face Spaces](Занятие%2001/Практика_01_GitHub_Pages_HF_Gradio.pdf) |
-| 2 | [Трекер на React или Svelte с публикацией через GitHub Actions](Занятие%2002/Практика%2002) |
+| Занятие | Задание | Дедлайн |
+| --- | --- | --- |
+| 1 | [Публикация на GitHub Pages и Hugging Face Spaces](Занятие%2001/Практика_01_GitHub_Pages_HF_Gradio.pdf) | 30 ноября 2026 |
+| 2 | [Трекер на React или Svelte с публикацией через GitHub Actions](Занятие%2002/Практика%2002) | 7 декабря 2026 |
 
 ## Changelog
 
